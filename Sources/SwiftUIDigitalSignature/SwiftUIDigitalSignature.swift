@@ -1,3 +1,4 @@
+
 //
 //  SignatureView.swift
 //  SwiftUI Recipes
@@ -25,7 +26,7 @@ public struct SignatureView: View {
     @State private var saveSignature = false
     
     @State private var fontFamily = fontFamlies[0]
-    @State private var color = Color.blue
+    @State private var color = Color.gray
     
     @State private var drawing = DrawingPath()
     @State private var image = UIImage()
@@ -281,7 +282,20 @@ struct DrawingPath {
     }
     
     mutating func addPoint(_ point: CGPoint) {
-        points.append(point)
+        if let lastPoint = points.last, !breaks.contains(points.count) {
+            let diffX = point.x - lastPoint.x
+            let diffY = point.y - lastPoint.y
+            let distance = hypot(diffX, diffY)
+            let numberOfPoints = max(1, Int(distance / 2.0)) // adjust the divider to change the number of intermediate points
+            for i in 1...numberOfPoints {
+                let t = CGFloat(i) / CGFloat(numberOfPoints)
+                let x = lastPoint.x + (diffX * t)
+                let y = lastPoint.y + (diffY * t)
+                points.append(CGPoint(x: x, y: y))
+            }
+        } else {
+            points.append(point)
+        }
     }
     
     mutating func addBreak() {
@@ -410,30 +424,6 @@ struct SignatureTypeView: View {
     }
 }
 
-struct SignatureViewTest: View {
-    @State private var image: UIImage? = nil
-    
-    var body: some View {
-        NavigationView {
-            VStack {
-              NavigationLink("GO", destination: SignatureView(availableTabs: [.draw, .image, .type], onSave: { image in
-                    self.image = image
-                }, onCancel: {
-                    
-                }))
-                if image != nil {
-                    Image(uiImage: image!)
-                }
-            }
-        }
-    }
-}
-
-struct SignatureView_Previews: PreviewProvider {
-    static var previews: some View {
-        SignatureViewTest()
-    }
-}
 
 extension Color {
     var uiColor: UIColor {
