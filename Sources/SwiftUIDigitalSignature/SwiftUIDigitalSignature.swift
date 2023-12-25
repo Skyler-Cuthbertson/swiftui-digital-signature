@@ -17,11 +17,7 @@ private let maxHeight: CGFloat = 160
 private let lineWidth: CGFloat = 5
 
 public struct SignatureView: View {
-  public let availableTabs: [Tab]
     public let onSave: (UIImage) -> Void
-    public let onCancel: () -> Void
-    
-  @State private var selectedTab: Tab
     
     @State private var saveSignature = false
     
@@ -33,37 +29,42 @@ public struct SignatureView: View {
     @State private var isImageSet = false
     @State private var text = ""
     
-  public init(availableTabs: [Tab] = Tab.allCases,
-              onSave: @escaping (UIImage) -> Void,
-              onCancel: @escaping () -> Void) {
-    self.availableTabs = availableTabs
-    self.onSave = onSave
-    self.onCancel = onCancel
-    
-    self.selectedTab = availableTabs.first!
-  }
+    public init(onSave: @escaping (UIImage) -> Void) {
+        self.onSave = onSave
+    }
     
     public var body: some View {
         VStack {
+            self.signatureContent
             HStack {
-                Button("Done", action: extractImageAndHandle)
                 Spacer()
-                Button("Cancel", action: onCancel)
-            }
-          if availableTabs.count > 1 {
-            Picker(selection: $selectedTab, label: EmptyView()) {
-                ForEach(availableTabs, id: \.self) { tab in
-                  Text(tab.title)
-                    .tag(tab)
+
+                HStack {
+                    Spacer()
+                    Button { clear()} label: { Image(systemName: "trash.fill").tint(.red) }
+                    Spacer()
                 }
-            }.pickerStyle(SegmentedPickerStyle())
-          }
-            signatureContent
-            Button("Clear signature", action: clear)
+                .padding()
+                .background(.gray)
+                .clipShape(.rect(cornerRadius: 15))
+                .padding()
+                
+                Spacer()
+
+                HStack {
+                    Spacer()
+                    Button { clear()} label: { Image(systemName: "checkmark.shield.fill").tint(.green) }
+                    Spacer()
+                }
+                .padding()
+                .background(.teal)
+                .clipShape(.rect(cornerRadius: 15))
+                .padding()
+                
+                Spacer()
+                
+            } // h both
             HStack {
-                if selectedTab == Tab.type {
-                    FontFamilyPicker(selection: $fontFamily)
-                }
                 ColorPickerCompat(selection: $color)
             }
             Spacer()
@@ -72,55 +73,25 @@ public struct SignatureView: View {
     
     private var signatureContent: some View {
         return Group {
-            switch selectedTab {
-            case .draw:
-                SignatureDrawView(drawing: $drawing, fontFamily: $fontFamily, color: $color)
-                
-            case .image:
-                SignatureImageView(isSet: $isImageSet, selection: $image)
-                
-            case .type:
-                SignatureTypeView(text: $text, fontFamily: $fontFamily, color: $color)
-            }
+            SignatureDrawView(drawing: $drawing, fontFamily: $fontFamily, color: $color)
+            
         }.padding(.vertical)
     }
     
     private func extractImageAndHandle() {
         let image: UIImage
-        switch selectedTab {
-        case .draw:
-            let path = drawing.cgPath
-            let maxX = drawing.points.map { $0.x }.max() ?? 0
-            let renderer = UIGraphicsImageRenderer(size: CGSize(width: maxX, height: maxHeight))
-            let uiImage = renderer.image { ctx in
-                ctx.cgContext.setStrokeColor(color.uiColor.cgColor)
-                ctx.cgContext.setLineWidth(lineWidth)
-                ctx.cgContext.beginPath()
-                ctx.cgContext.addPath(path)
-                ctx.cgContext.drawPath(using: .stroke)
-            }
-            image = uiImage
-        case .image:
-            image = self.image
-        case .type:
-            let rendererWidth: CGFloat = 512
-            let rendererHeight: CGFloat = 128
-            let renderer = UIGraphicsImageRenderer(size: CGSize(width: rendererWidth, height: rendererHeight))
-            let uiImage = renderer.image { ctx in
-                let paragraphStyle = NSMutableParagraphStyle()
-                paragraphStyle.alignment = .center
-
-                let attrs = [NSAttributedString.Key.font: UIFont(name: fontFamily, size: bigFontSize)!,
-                             NSAttributedString.Key.foregroundColor: color.uiColor,
-                             NSAttributedString.Key.paragraphStyle: paragraphStyle
-                ]
-                text.draw(with: CGRect(x: 0, y: 0, width: rendererWidth, height: rendererHeight),
-                          options: .usesLineFragmentOrigin,
-                          attributes: attrs,
-                          context: nil)
-            }
-            image = uiImage
+        let path = drawing.cgPath
+        let maxX = drawing.points.map { $0.x }.max() ?? 0
+        let renderer = UIGraphicsImageRenderer(size: CGSize(width: maxX, height: maxHeight))
+        let uiImage = renderer.image { ctx in
+            ctx.cgContext.setStrokeColor(color.uiColor.cgColor)
+            ctx.cgContext.setLineWidth(lineWidth)
+            ctx.cgContext.beginPath()
+            ctx.cgContext.addPath(path)
+            ctx.cgContext.drawPath(using: .stroke)
         }
+        image = uiImage
+        
         if saveSignature {
             if let data = image.pngData(),
                let docsDir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
@@ -138,20 +109,7 @@ public struct SignatureView: View {
         text = ""
     }
     
-  public enum Tab: CaseIterable, Hashable {
-    case draw, image, type
     
-    var title: LocalizedStringKey {
-      switch self {
-      case .draw:
-        return "Draw"
-      case .image:
-        return "Image"
-      case .type:
-        return "Type"
-      }
-    }
-  }
 }
 
 struct ColorPickerCompat: View {
@@ -190,37 +148,7 @@ struct ColorPickerCompat: View {
     }
 }
 
-struct FontFamilyPicker: View {
-    @Binding var selection: String
-    
-    @State private var showPopover = false
-    
-    var body: some View {
-        
-        Picker("Font", selection: $selection) {
-            ForEach(fontFamlies, id: \.self) { fontFamily in
-                Label {
-                    VStack(spacing: 20) {
-                        Button(action: {
-                            selection = fontFamily
-                            showPopover.toggle()
-                        }, label: {
-                            buttonLabel(fontFamily, size: 24)
-                        })
-                    }
-                } icon: {
-                    buttonLabel(selection, size: 16)
-                }.tag(fontFamily)
-            } // for each
-        } // picker
-    }
-    
-    private func buttonLabel(_ fontFamily: String, size: CGFloat) -> Text {
-        Text(placeholderText)
-            .font(.custom(fontFamily, size: size))
-            .foregroundColor(.black)
-    }
-}
+
 
 struct FramePreferenceKey: PreferenceKey {
   static var defaultValue: CGRect = .zero
@@ -248,9 +176,7 @@ struct SignatureDrawView: View {
             drawingBounds = bounds
           }
         if drawing.isEmpty {
-          Text(placeholderText)
-            .foregroundColor(.gray)
-            .font(.custom(fontFamily, size: bigFontSize))
+          Image(systemName: "signature")
         } else {
           DrawShape(drawingPath: drawing)
             .stroke(lineWidth: lineWidth)
@@ -258,7 +184,7 @@ struct SignatureDrawView: View {
         }
       }
       .frame(height: maxHeight)
-      .gesture(DragGesture()
+      .gesture(DragGesture(minimumDistance: 0.001)
         .onChanged( { value in
           if drawingBounds.contains(value.location) {
             drawing.addPoint(value.location)
@@ -341,88 +267,7 @@ struct DrawShape: Shape {
     }
 }
 
-struct SignatureImageView: View {
-    @Binding var isSet: Bool
-    @Binding var selection: UIImage
-    
-    @State private var showPopover = false
-    
-    var body: some View {
-        Button(action: {
-            showPopover.toggle()
-        }) {
-            if isSet {
-                Image(uiImage: selection)
-                    .resizable()
-                    .frame(maxHeight: maxHeight)
-            } else {
-                ZStack {
-                    Color.white
-                    Text("Choose signature image")
-                        .font(.system(size: 18))
-                        .foregroundColor(.gray)
-                }.frame(height: maxHeight)
-                .overlay(RoundedRectangle(cornerRadius: 4)
-                            .stroke(Color.gray))
-            }
-        }.popover(isPresented: $showPopover) {
-            ImagePicker(selectedImage: $selection, didSet: $isSet)
-        }
-    }
-}
 
-struct ImagePicker: UIViewControllerRepresentable {
-    @Environment(\.presentationMode) private var presentationMode
-    @Binding var selectedImage: UIImage
-    @Binding var didSet: Bool
-    var sourceType = UIImagePickerController.SourceType.photoLibrary
-     
-    func makeUIViewController(context: UIViewControllerRepresentableContext<ImagePicker>) -> UIImagePickerController {
-        let imagePicker = UIImagePickerController()
-        imagePicker.navigationBar.tintColor = .clear
-        imagePicker.allowsEditing = false
-        imagePicker.sourceType = sourceType
-        imagePicker.delegate = context.coordinator
-        return imagePicker
-    }
- 
-    func updateUIViewController(_ uiViewController: UIImagePickerController,
-                                context: UIViewControllerRepresentableContext<ImagePicker>) { }
-    
-    func makeCoordinator() -> Coordinator {
-        Coordinator(self)
-    }
-    
-    class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
-        let control: ImagePicker
-        
-        init(_ control: ImagePicker) {
-            self.control = control
-        }
-     
-        func imagePickerController(_ picker: UIImagePickerController,
-                                   didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
-            if let image = info[UIImagePickerController.InfoKey.originalImage] as? UIImage {
-                control.selectedImage = image
-                control.didSet = true
-            }
-            control.presentationMode.wrappedValue.dismiss()
-        }
-    }
-}
-
-struct SignatureTypeView: View {
-    @Binding var text: String
-    @Binding var fontFamily: String
-    @Binding var color: Color
-    
-    var body: some View {
-        TextField(placeholderText, text: $text)
-            .disableAutocorrection(true)
-            .font(.custom(fontFamily, size: bigFontSize))
-            .foregroundColor(color)
-    }
-}
 
 
 extension Color {
@@ -449,3 +294,5 @@ extension Color {
         return (r, g, b, a)
     }
 }
+
+
