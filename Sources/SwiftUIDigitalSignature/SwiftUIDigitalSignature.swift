@@ -24,7 +24,7 @@ public struct SignatureView: View {
     @State private var text = ""
     
     @Binding var signatureImage: UIImage
-    public let onSignatureCompleted: () -> Void
+//    public let onSignatureCompleted: () -> Void
 
     public var body: some View {
         VStack {
@@ -81,7 +81,7 @@ public struct SignatureView: View {
         image = uiImage
         
         self.signatureImage = image
-        self.onSignatureCompleted()
+//        self.onSignatureCompleted()
         dismiss()
     }
     
