@@ -80,7 +80,7 @@ public struct SignatureView: View {
         }
         image = uiImage
         
-        self.signatureImage = image
+//        self.signatureImage = image
         self.onSignatureCompleted()
 //        dismiss()
     }
