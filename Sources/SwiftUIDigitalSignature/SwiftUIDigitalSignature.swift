@@ -10,20 +10,14 @@ import SwiftUI
 import CoreGraphics
 import UIKit
 
-private let fontFamlies = ["Zapfino", "SavoyeLetPlain", "SnellRoundhand", "SnellRoundhand-Black"]
-private let bigFontSize: CGFloat = 44
-private let placeholderText = "Signature"
 private let maxHeight: CGFloat = 160
-private let lineWidth: CGFloat = 5
+private let lineWidth: CGFloat = 3
 
 public struct SignatureView: View {
     public let onSave: (UIImage) -> Void
     
     @State private var saveSignature = false
-    
-    @State private var fontFamily = fontFamlies[0]
-    @State private var color = Color.gray
-    
+        
     @State private var drawing = DrawingPath()
     @State private var image = UIImage()
     @State private var isImageSet = false
@@ -35,48 +29,43 @@ public struct SignatureView: View {
     
     public var body: some View {
         VStack {
-            self.signatureContent
+            SignatureDrawView(drawing: $drawing)
+            
+            Text("Please Sign").font(.callout).fontWeight(.medium)
+            
             HStack {
                 Spacer()
-
+                
                 HStack {
                     Spacer()
-                    Button { clear()} label: { Image(systemName: "trash.fill").tint(.red) }
+                    Button { clear()} label: { Text("Clear").fontWeight(.semibold).foregroundStyle(.white) }
                     Spacer()
                 }
                 .padding()
                 .background(.gray)
-                .clipShape(.rect(cornerRadius: 15))
+                .clipShape(.rect(cornerRadius: 10))
                 .padding()
                 
                 Spacer()
-
+                
                 HStack {
                     Spacer()
-                    Button { clear()} label: { Image(systemName: "checkmark.shield.fill").tint(.green) }
+                    Button { onSave(self.image)} label: { Text("Done").fontWeight(.semibold).foregroundStyle(.white) }
                     Spacer()
                 }
                 .padding()
                 .background(.teal)
-                .clipShape(.rect(cornerRadius: 15))
+                .clipShape(.rect(cornerRadius: 10))
                 .padding()
                 
                 Spacer()
                 
             } // h both
-            HStack {
-                ColorPickerCompat(selection: $color)
-            }
-            Spacer()
-        }.padding()
+        }
+        .padding()
     }
     
-    private var signatureContent: some View {
-        return Group {
-            SignatureDrawView(drawing: $drawing, fontFamily: $fontFamily, color: $color)
-            
-        }.padding(.vertical)
-    }
+
     
     private func extractImageAndHandle() {
         let image: UIImage
@@ -84,7 +73,7 @@ public struct SignatureView: View {
         let maxX = drawing.points.map { $0.x }.max() ?? 0
         let renderer = UIGraphicsImageRenderer(size: CGSize(width: maxX, height: maxHeight))
         let uiImage = renderer.image { ctx in
-            ctx.cgContext.setStrokeColor(color.uiColor.cgColor)
+            ctx.cgContext.setStrokeColor(CGColor(red: 255, green: 255, blue: 255, alpha: 1.0)) // white
             ctx.cgContext.setLineWidth(lineWidth)
             ctx.cgContext.beginPath()
             ctx.cgContext.addPath(path)
@@ -112,43 +101,6 @@ public struct SignatureView: View {
     
 }
 
-struct ColorPickerCompat: View {
-    @Binding var selection: Color
-    
-    @State private var showPopover = false
-    private let availableColors: [Color] = [.blue, .black, .red]
-    
-    var body: some View {
-        if #available(iOS 14.0, *) {
-            ColorPicker(selection: $selection) {
-                EmptyView()
-            }
-        } else {
-            Button(action: {
-                showPopover.toggle()
-            }, label: {
-                colorCircle(selection)
-            }).popover(isPresented: $showPopover) {
-                ForEach(availableColors, id: \.self) { color in
-                    Button(action: {
-                        selection = color
-                        showPopover.toggle()
-                    }, label: {
-                        colorCircle(color)
-                    })
-                }
-            }
-        }
-    }
-    
-    private func colorCircle(_ color: Color) -> some View {
-        Circle()
-            .foregroundColor(color)
-            .frame(width: 32, height: 32)
-    }
-}
-
-
 
 struct FramePreferenceKey: PreferenceKey {
   static var defaultValue: CGRect = .zero
@@ -158,45 +110,57 @@ struct FramePreferenceKey: PreferenceKey {
   }
 }
 
+
 struct SignatureDrawView: View {
-  @Binding var drawing: DrawingPath
-  @Binding var fontFamily: String
-  @Binding var color: Color
-  
-  @State private var drawingBounds: CGRect = .zero
+    @Binding var drawing: DrawingPath
+    
+    @State private var drawingBounds: CGRect = .zero
     
     var body: some View {
-      ZStack {
-        Color.white
-          .background(GeometryReader { geometry in
-            Color.clear.preference(key: FramePreferenceKey.self,
-                                   value: geometry.frame(in: .local))
-          })
-          .onPreferenceChange(FramePreferenceKey.self) { bounds in
-            drawingBounds = bounds
-          }
-        if drawing.isEmpty {
-          Image(systemName: "signature")
-        } else {
-          DrawShape(drawingPath: drawing)
-            .stroke(lineWidth: lineWidth)
-            .foregroundColor(color)
-        }
-      }
-      .frame(height: maxHeight)
-      .gesture(DragGesture(minimumDistance: 0.001)
-        .onChanged( { value in
-          if drawingBounds.contains(value.location) {
-            drawing.addPoint(value.location)
-          } else {
-            drawing.addBreak()
-          }
-        }).onEnded( { value in
-          drawing.addBreak()
-        }))
-      .overlay(RoundedRectangle(cornerRadius: 4)
+        VStack {
+            ZStack {
+                Color.gray
+                    .background(GeometryReader { geometry in
+                        Color.clear.preference(key: FramePreferenceKey.self,
+                                               value: geometry.frame(in: .local))
+                    })
+                    .onPreferenceChange(FramePreferenceKey.self) { bounds in
+                        drawingBounds = bounds
+                    }
+                
+                if drawing.isEmpty {
+                    Image(systemName: "signature")
+                } else {
+                    DrawShape(drawingPath: drawing)
+                        .stroke(lineWidth: lineWidth)
+                        .foregroundStyle(.white)
+                }
+            } // z
+            .frame(height: maxHeight)
+            .gesture(DragGesture(minimumDistance: 0.0001)
+                .onChanged( { value in
+                    if drawingBounds.contains(value.location) {
+                        drawing.addPoint(value.location)
+                    } else {
+                        drawing.addBreak()
+                    }
+                }).onEnded( { value in
+                    drawing.addBreak()
+                }))
+            .overlay(RoundedRectangle(cornerRadius: 4)
                 .stroke(Color.gray))
-  }
+            
+            HStack {
+                Image(systemName: "xmark")
+                VStack {
+                    Divider()
+                        .frame(height: 4)
+                        .overlay(.white)
+                }
+            }
+            .padding(.horizontal)
+        } // v
+    }
 }
 
 struct DrawingPath {
@@ -208,21 +172,9 @@ struct DrawingPath {
     }
     
     mutating func addPoint(_ point: CGPoint) {
-        if let lastPoint = points.last, !breaks.contains(points.count) {
-            let diffX = point.x - lastPoint.x
-            let diffY = point.y - lastPoint.y
-            let distance = hypot(diffX, diffY)
-            let numberOfPoints = max(1, Int(distance / 2.0)) // adjust the divider to change the number of intermediate points
-            for i in 1...numberOfPoints {
-                let t = CGFloat(i) / CGFloat(numberOfPoints)
-                let x = lastPoint.x + (diffX * t)
-                let y = lastPoint.y + (diffY * t)
-                points.append(CGPoint(x: x, y: y))
-            }
-        } else {
-            points.append(point)
-        }
+        points.append(point)
     }
+    
     
     mutating func addBreak() {
         breaks.append(points.count)
@@ -238,7 +190,7 @@ struct DrawingPath {
             } else {
                 path.addLine(to: points[i])
             }
-
+            
         }
         return path
     }
@@ -253,7 +205,7 @@ struct DrawingPath {
             } else {
                 path.addLine(to: points[i])
             }
-
+            
         }
         return path
     }
