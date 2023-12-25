@@ -31,7 +31,7 @@ public struct SignatureView: View {
         VStack {
             SignatureDrawView(drawing: $drawing)
             
-            Text("Please Sign").font(.callout).fontWeight(.medium)
+            Text("Please Sign").font(.caption).fontWeight(.medium)
             
             HStack {
                 Spacer()
@@ -54,7 +54,7 @@ public struct SignatureView: View {
                     Spacer()
                 }
                 .padding()
-                .background(.teal)
+                .background(.mint)
                 .clipShape(.rect(cornerRadius: 10))
                 .padding()
                 
@@ -119,7 +119,7 @@ struct SignatureDrawView: View {
     var body: some View {
         VStack {
             ZStack {
-                Color.gray
+                Color.clear
                     .background(GeometryReader { geometry in
                         Color.clear.preference(key: FramePreferenceKey.self,
                                                value: geometry.frame(in: .local))
@@ -130,6 +130,8 @@ struct SignatureDrawView: View {
                 
                 if drawing.isEmpty {
                     Image(systemName: "signature")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
                 } else {
                     DrawShape(drawingPath: drawing)
                         .stroke(lineWidth: lineWidth)
@@ -154,11 +156,10 @@ struct SignatureDrawView: View {
                 Image(systemName: "xmark")
                 VStack {
                     Divider()
-                        .frame(height: 4)
+                        .frame(height: 2)
                         .overlay(.white)
                 }
             }
-            .padding(.horizontal)
         } // v
     }
 }
