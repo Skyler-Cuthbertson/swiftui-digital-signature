@@ -51,13 +51,12 @@ public struct SignatureView: View {
                     Spacer()
                 }
                 .padding()
-                .background(.mint)
+                .background(.cyan)
                 .clipShape(.rect(cornerRadius: 10))
                 .padding()
                                 
             } // h both
         }
-        .padding()
     }
     
 
@@ -112,50 +111,57 @@ struct SignatureDrawView: View {
     @State private var drawingBounds: CGRect = .zero
     
     var body: some View {
-        VStack {
-            ZStack {
-                Color.clear
-                    .background(GeometryReader { geometry in
-                        Color.clear.preference(key: FramePreferenceKey.self,
-                                               value: geometry.frame(in: .local))
-                    })
-                    .onPreferenceChange(FramePreferenceKey.self) { bounds in
-                        drawingBounds = bounds
-                    }
-                
-                if drawing.isEmpty {
-                    Image(systemName: "signature")
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                } else {
-                    DrawShape(drawingPath: drawing)
-                        .stroke(lineWidth: lineWidth)
-                        .foregroundStyle(.white)
+        ZStack {
+            Color.clear
+                .background(GeometryReader { geometry in
+                    Color.clear.preference(key: FramePreferenceKey.self,
+                                           value: geometry.frame(in: .local))
+                })
+                .onPreferenceChange(FramePreferenceKey.self) { bounds in
+                    drawingBounds = bounds
                 }
-            } // z
-            .frame(height: maxHeight)
-            .gesture(DragGesture(minimumDistance: 0.0001)
-                .onChanged( { value in
-                    if drawingBounds.contains(value.location) {
-                        drawing.addPoint(value.location)
-                    } else {
-                        drawing.addBreak()
-                    }
-                }).onEnded( { value in
-                    drawing.addBreak()
-                }))
-            .overlay(RoundedRectangle(cornerRadius: 4)
-                .stroke(Color.gray))
             
-            HStack {
-                Image(systemName: "xmark")
-                VStack {
-                    Divider()
-                        .frame(height: 2)
-                        .overlay(.white)
-                }
+            VStack {
+                Spacer()
+                HStack {
+                    Image(systemName: "xmark")
+                    VStack {
+                        Divider()
+                            .frame(height: 2)
+                            .overlay(.white)
+                    }
+                } // h
+                .padding(.horizontal)
+            } // v
+            
+            if drawing.isEmpty {
+                Image(systemName: "signature")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .padding()
+                    .fontWeight(.thin)
+                
+            } else {
+                DrawShape(drawingPath: drawing)
+                    .stroke(lineWidth: lineWidth)
+                    .foregroundStyle(.white)
             }
-        } // v
+            
+        } // z
+        .frame(height: maxHeight)
+        .gesture(DragGesture(minimumDistance: 0.00001)
+            .onChanged( { value in
+                if drawingBounds.contains(value.location) {
+                    drawing.addPoint(value.location)
+                } else {
+                    drawing.addBreak()
+                }
+            }).onEnded( { value in
+                drawing.addBreak()
+            }))
+        .overlay(RoundedRectangle(cornerRadius: 4)
+            .stroke(Color.gray))
+            
     }
 }
 
