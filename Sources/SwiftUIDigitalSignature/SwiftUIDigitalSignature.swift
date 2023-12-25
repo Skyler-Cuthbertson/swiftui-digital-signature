@@ -14,8 +14,8 @@ private let maxHeight: CGFloat = 160
 private let lineWidth: CGFloat = 3
 
 public struct SignatureView: View {
-    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
-//    @Environment(\.dismiss) var dismiss
+//    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    @Environment(\.dismiss) var dismiss
 
 
     @State private var drawing = DrawingPath()
@@ -55,13 +55,13 @@ public struct SignatureView: View {
                 .padding()
                                 
             } // h both
-            .onAppear {
-                UIDevice.current.setValue(UIInterfaceOrientation.landscapeLeft.rawValue, forKey: "orientation")
-                AppDelegate.orientationLock = .landscapeLeft
-            }
-            .onDisappear {
-                AppDelegate.orientationLock = .allButUpsideDown
-            }
+//            .onAppear {
+//                UIDevice.current.setValue(UIInterfaceOrientation.landscapeLeft.rawValue, forKey: "orientation")
+//                AppDelegate.orientationLock = .landscapeLeft
+//            }
+//            .onDisappear {
+//                AppDelegate.orientationLock = .allButUpsideDown
+//            }
         }
     }
     
@@ -82,7 +82,7 @@ public struct SignatureView: View {
         
         self.signatureImage = image
         self.onSignatureCompleted()
-//        dismiss()
+        dismiss()
     }
     
     private func clear() {
@@ -141,7 +141,7 @@ struct SignatureDrawView: View {
                     .aspectRatio(contentMode: .fit)
                     .padding()
                     .fontWeight(.thin)
-                    .font(.subheadline)
+//                    .font(.subheadline)
                 
             } else {
                 DrawShape(drawingPath: drawing)
@@ -224,37 +224,10 @@ struct DrawShape: Shape {
 }
 
 
-
-
-extension Color {
-    var uiColor: UIColor {
-        if #available(iOS 14, *) {
-            return UIColor(self)
-        } else {
-            let components = self.components
-            return UIColor(red: components.r, green: components.g, blue: components.b, alpha: components.a)
-        }
-    }
-    
-    private var components: (r: CGFloat, g: CGFloat, b: CGFloat, a: CGFloat) {
-        let scanner = Scanner(string: self.description.trimmingCharacters(in: CharacterSet.alphanumerics.inverted))
-        var hexNumber: UInt64 = 0
-        var r: CGFloat = 0.0, g: CGFloat = 0.0, b: CGFloat = 0.0, a: CGFloat = 0.0
-        let result = scanner.scanHexInt64(&hexNumber)
-        if result {
-            r = CGFloat((hexNumber & 0xff000000) >> 24) / 255
-            g = CGFloat((hexNumber & 0x00ff0000) >> 16) / 255
-            b = CGFloat((hexNumber & 0x0000ff00) >> 8) / 255
-            a = CGFloat(hexNumber & 0x000000ff) / 255
-        }
-        return (r, g, b, a)
-    }
-}
-
-
 class AppDelegate: NSObject, UIApplicationDelegate {
     static var orientationLock = UIInterfaceOrientationMask.allButUpsideDown
     func application(_ application: UIApplication, supportedInterfaceOrientationsFor window: UIWindow?) -> UIInterfaceOrientationMask {
         return AppDelegate.orientationLock
     }
 }
+
