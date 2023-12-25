@@ -72,16 +72,15 @@ public struct SignatureView: View {
     
     private var signatureContent: some View {
         return Group {
-            if selectedTab == .draw {
-                SignatureDrawView(drawing: $drawing,
-                                  fontFamily: $fontFamily,
-                                  color: $color)
-            } else if selectedTab == .image {
+            switch selectedTab {
+            case .draw:
+                SignatureDrawView(drawing: $drawing, fontFamily: $fontFamily, color: $color)
+                
+            case .image:
                 SignatureImageView(isSet: $isImageSet, selection: $image)
-            } else if selectedTab == .type {
-                SignatureTypeView(text: $text,
-                                  fontFamily: $fontFamily,
-                                  color: $color)
+                
+            case .type:
+                SignatureTypeView(text: $text, fontFamily: $fontFamily, color: $color)
             }
         }.padding(.vertical)
     }
@@ -197,22 +196,23 @@ struct FontFamilyPicker: View {
     @State private var showPopover = false
     
     var body: some View {
-        Button(action: {
-            showPopover.toggle()
-        }, label: {
-            buttonLabel(selection, size: 16)
-        }).popover(isPresented: $showPopover) {
-            VStack(spacing: 20) {
-                ForEach(fontFamlies, id: \.self) { fontFamily in
-                    Button(action: {
-                        selection = fontFamily
-                        showPopover.toggle()
-                    }, label: {
-                        buttonLabel(fontFamily, size: 24)
-                    })
-                }
-            }
-        }
+        
+        Picker("Font", selection: $selection) {
+            ForEach(fontFamlies, id: \.self) { fontFamily in
+                Label {
+                    VStack(spacing: 20) {
+                        Button(action: {
+                            selection = fontFamily
+                            showPopover.toggle()
+                        }, label: {
+                            buttonLabel(fontFamily, size: 24)
+                        })
+                    }
+                } icon: {
+                    buttonLabel(selection, size: 16)
+                }.tag(fontFamily)
+            } // for each
+        } // picker
     }
     
     private func buttonLabel(_ fontFamily: String, size: CGFloat) -> Text {
