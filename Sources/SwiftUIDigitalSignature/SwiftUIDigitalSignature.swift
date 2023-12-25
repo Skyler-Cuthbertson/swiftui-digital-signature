@@ -14,19 +14,16 @@ private let maxHeight: CGFloat = 160
 private let lineWidth: CGFloat = 3
 
 public struct SignatureView: View {
-    public let onSave: (UIImage) -> Void
-    
-    @State private var saveSignature = false
-        
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+
     @State private var drawing = DrawingPath()
     @State private var image = UIImage()
     @State private var isImageSet = false
     @State private var text = ""
     
-    public init(onSave: @escaping (UIImage) -> Void) {
-        self.onSave = onSave
-    }
-    
+    @Binding var signatureImage: UIImage
+    public let onSignatureCompleted: () -> Void
+
     public var body: some View {
         VStack {
             SignatureDrawView(drawing: $drawing)
@@ -47,21 +44,28 @@ public struct SignatureView: View {
                 
                 HStack {
                     Spacer()
-                    Button { onSave(self.image)} label: { Text("Done").fontWeight(.semibold).foregroundStyle(.white) }
+                    Button { self.done() } label: { Text("Done").fontWeight(.semibold).foregroundStyle(.white) }
                     Spacer()
                 }
                 .padding()
-                .background(.cyan)
+                .background(Color.cyan.brightness(0.60))
                 .clipShape(.rect(cornerRadius: 10))
                 .padding()
                                 
             } // h both
+            .onAppear {
+                UIDevice.current.setValue(UIInterfaceOrientation.landscapeLeft.rawValue, forKey: "orientation")
+                AppDelegate.orientationLock = .landscapeLeft
+            }
+            .onDisappear {
+                AppDelegate.orientationLock = .allButUpsideDown
+            }
         }
     }
     
 
     
-    private func extractImageAndHandle() {
+    private func done() {
         let image: UIImage
         let path = drawing.cgPath
         let maxX = drawing.points.map { $0.x }.max() ?? 0
@@ -75,14 +79,8 @@ public struct SignatureView: View {
         }
         image = uiImage
         
-        if saveSignature {
-            if let data = image.pngData(),
-               let docsDir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
-                let filename = docsDir.appendingPathComponent("Signature-\(Date()).png")
-                try? data.write(to: filename)
-            }
-        }
-        onSave(image)
+        self.signatureImage = image
+        self.onSignatureCompleted()
     }
     
     private func clear() {
@@ -127,15 +125,16 @@ struct SignatureDrawView: View {
                     Image(systemName: "xmark")
                     VStack {
                         Divider()
-                            .frame(height: 2)
+                            .frame(height: 1)
                             .overlay(.white)
                     }
                 } // h
                 .padding(.horizontal)
+                .padding(.bottom, 4)
             } // v
             
             if drawing.isEmpty {
-                Image(systemName: "signature")
+                Image(systemName: "applepencil.and.scribble")
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .padding()
@@ -250,3 +249,9 @@ extension Color {
 }
 
 
+class AppDelegate: NSObject, UIApplicationDelegate {
+    static var orientationLock = UIInterfaceOrientationMask.allButUpsideDown
+    func application(_ application: UIApplication, supportedInterfaceOrientationsFor window: UIWindow?) -> UIInterfaceOrientationMask {
+        return AppDelegate.orientationLock
+    }
+}
