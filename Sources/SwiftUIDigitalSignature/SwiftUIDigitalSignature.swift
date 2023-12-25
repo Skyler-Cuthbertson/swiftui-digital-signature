@@ -34,8 +34,6 @@ public struct SignatureView: View {
             Text("Please Sign").font(.caption).fontWeight(.medium)
             
             HStack {
-                Spacer()
-                
                 HStack {
                     Spacer()
                     Button { clear()} label: { Text("Clear").fontWeight(.semibold).foregroundStyle(.white) }
@@ -46,7 +44,6 @@ public struct SignatureView: View {
                 .clipShape(.rect(cornerRadius: 10))
                 .padding()
                 
-                Spacer()
                 
                 HStack {
                     Spacer()
@@ -57,9 +54,7 @@ public struct SignatureView: View {
                 .background(.mint)
                 .clipShape(.rect(cornerRadius: 10))
                 .padding()
-                
-                Spacer()
-                
+                                
             } // h both
         }
         .padding()
