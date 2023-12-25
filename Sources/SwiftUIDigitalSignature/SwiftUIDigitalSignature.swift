@@ -15,6 +15,8 @@ private let lineWidth: CGFloat = 3
 
 public struct SignatureView: View {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    @Environment(\.dismiss) var dismiss
+
 
     @State private var drawing = DrawingPath()
     @State private var image = UIImage()
@@ -48,7 +50,7 @@ public struct SignatureView: View {
                     Spacer()
                 }
                 .padding()
-                .background(Color.cyan.brightness(0.60))
+                .background(Color(red: 0, green: 115, blue: 190)) // blue ish
                 .clipShape(.rect(cornerRadius: 10))
                 .padding()
                                 
@@ -63,7 +65,6 @@ public struct SignatureView: View {
         }
     }
     
-
     
     private func done() {
         let image: UIImage
@@ -81,6 +82,7 @@ public struct SignatureView: View {
         
         self.signatureImage = image
         self.onSignatureCompleted()
+        dismiss()
     }
     
     private func clear() {
@@ -139,6 +141,7 @@ struct SignatureDrawView: View {
                     .aspectRatio(contentMode: .fit)
                     .padding()
                     .fontWeight(.thin)
+                    .font(.subheadline)
                 
             } else {
                 DrawShape(drawingPath: drawing)
