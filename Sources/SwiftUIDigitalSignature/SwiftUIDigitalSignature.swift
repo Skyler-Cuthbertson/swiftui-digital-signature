@@ -15,7 +15,7 @@ private let lineWidth: CGFloat = 3
 
 public struct SignatureView: View {
 //    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
-    @Environment(\.dismiss) var dismiss
+//    @Environment(\.dismiss) var dismiss
 
 
     @State private var drawing = DrawingPath()
@@ -82,7 +82,7 @@ public struct SignatureView: View {
         
         self.signatureImage = image
         self.onSignatureCompleted()
-        dismiss()
+//        dismiss()
     }
     
     private func clear() {
