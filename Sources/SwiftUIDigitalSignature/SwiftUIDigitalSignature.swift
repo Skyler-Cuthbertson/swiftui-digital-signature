@@ -14,8 +14,8 @@ private let maxHeight: CGFloat = 160
 private let lineWidth: CGFloat = 3
 
 public struct SignatureView: View {
-//    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
-//    @Environment(\.dismiss) var dismiss
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    @Environment(\.dismiss) var dismiss
 
 
     @State private var drawing = DrawingPath()
@@ -23,7 +23,7 @@ public struct SignatureView: View {
     @State private var isImageSet = false
     @State private var text = ""
     
-//    @Binding var signatureImage: UIImage
+    @Binding var signatureImage: UIImage
     public let onSignatureCompleted: () -> Void
 
     public var body: some View {
@@ -55,13 +55,13 @@ public struct SignatureView: View {
                 .padding()
                                 
             } // h both
-//            .onAppear {
-//                UIDevice.current.setValue(UIInterfaceOrientation.landscapeLeft.rawValue, forKey: "orientation")
-//                AppDelegate.orientationLock = .landscapeLeft
-//            }
-//            .onDisappear {
-//                AppDelegate.orientationLock = .allButUpsideDown
-//            }
+            .onAppear {
+                UIDevice.current.setValue(UIInterfaceOrientation.landscapeLeft.rawValue, forKey: "orientation")
+                AppDelegate.orientationLock = .landscapeLeft
+            }
+            .onDisappear {
+                AppDelegate.orientationLock = .allButUpsideDown
+            }
         }
     }
     
@@ -80,9 +80,9 @@ public struct SignatureView: View {
         }
         image = uiImage
         
-//        self.signatureImage = image
+        self.signatureImage = image
         self.onSignatureCompleted()
-//        dismiss()
+        dismiss()
     }
     
     private func clear() {
@@ -141,7 +141,7 @@ struct SignatureDrawView: View {
                     .aspectRatio(contentMode: .fit)
                     .padding()
                     .fontWeight(.thin)
-//                    .font(.subheadline)
+                    .font(.subheadline)
                 
             } else {
                 DrawShape(drawingPath: drawing)
