@@ -23,7 +23,7 @@ public struct SignatureView: View {
     @State private var isImageSet = false
     @State private var text = ""
     
-    @Binding var signatureImage: UIImage
+//    @Binding var signatureImage: UIImage
     public let onSignatureCompleted: () -> Void
 
     public var body: some View {
