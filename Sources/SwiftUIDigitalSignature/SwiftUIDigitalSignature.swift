@@ -14,7 +14,7 @@ private let maxHeight: CGFloat = 160
 private let lineWidth: CGFloat = 3
 
 public struct SignatureView: View {
-    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+//    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
 
     @State private var drawing = DrawingPath()
     @State var image = UIImage()
@@ -46,19 +46,19 @@ public struct SignatureView: View {
                     Spacer()
                 }
                 .padding()
-                .background(Color(red: 0, green: 115, blue: 190)) // blue ish
+                .background(Color(red: 0, green: 60, blue: 200)) // blue ish
                 .clipShape(.rect(cornerRadius: 10))
                 .padding()
                 
             } // h both
-            .onAppear {
-                UIDevice.current.setValue(UIInterfaceOrientation.landscapeLeft.rawValue, forKey: "orientation")
-                AppDelegate.orientationLock = .landscapeLeft
-            }
-            .onDisappear {
-                AppDelegate.orientationLock = .allButUpsideDown
-            }
-            
+//            .onAppear {
+//                UIDevice.current.setValue(UIInterfaceOrientation.landscapeLeft.rawValue, forKey: "orientation")
+//                AppDelegate.orientationLock = .landscapeLeft
+//            }
+//            .onDisappear {
+//                AppDelegate.orientationLock = .allButUpsideDown
+//            }
+//            
             Image(uiImage: self.image)
                 .resizable()
                 .aspectRatio(contentMode: .fit)
@@ -68,21 +68,20 @@ public struct SignatureView: View {
     
     
     private func done() {
-        let imageTemp: UIImage
         let path = drawing.cgPath
         let maxX = drawing.points.map { $0.x }.max() ?? 0
         let renderer = UIGraphicsImageRenderer(size: CGSize(width: maxX, height: maxHeight))
         let uiImage = renderer.image { ctx in
-            ctx.cgContext.setStrokeColor(CGColor(red: 255, green: 255, blue: 255, alpha: 1.0)) // white
+            ctx.cgContext.setStrokeColor(CGColor(red: 220, green: 220, blue: 220, alpha: 1.0)) // white
             ctx.cgContext.setLineWidth(lineWidth)
             ctx.cgContext.beginPath()
             ctx.cgContext.addPath(path)
             ctx.cgContext.drawPath(using: .stroke)
         }
-        imageTemp = uiImage
-        print("SAVED")
-        self.onSignatureCompleted(image)
+        self.image = uiImage
+        self.onSignatureCompleted(self.image)
     }
+
     
     private func clear() {
         drawing = DrawingPath()
