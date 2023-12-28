@@ -58,12 +58,17 @@ public struct SignatureView: View {
             .onDisappear {
                 AppDelegate.orientationLock = .allButUpsideDown
             }
+            
+            Image(uiImage: self.image)
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .padding()
         }
     }
     
     
     private func done() {
-        let image: UIImage
+        let imageTemp: UIImage
         let path = drawing.cgPath
         let maxX = drawing.points.map { $0.x }.max() ?? 0
         let renderer = UIGraphicsImageRenderer(size: CGSize(width: maxX, height: maxHeight))
@@ -74,7 +79,7 @@ public struct SignatureView: View {
             ctx.cgContext.addPath(path)
             ctx.cgContext.drawPath(using: .stroke)
         }
-        image = uiImage
+        imageTemp = uiImage
         
         self.onSignatureCompleted(image)
     }
