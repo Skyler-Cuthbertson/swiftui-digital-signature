@@ -17,15 +17,13 @@ public struct SignatureView: View {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @Environment(\.dismiss) var dismiss
 
-
     @State private var drawing = DrawingPath()
-    @State private var image = UIImage()
+    @State var image = UIImage()
     @State private var isImageSet = false
     @State private var text = ""
     
-    @Binding var signatureImage: UIImage
-    public let onSignatureCompleted: () -> Void
-
+    public let onSignatureCompleted: (UIImage) -> Void
+    
     public var body: some View {
         VStack {
             SignatureDrawView(drawing: $drawing)
@@ -35,7 +33,7 @@ public struct SignatureView: View {
             HStack {
                 HStack {
                     Spacer()
-                    Button { clear()} label: { Text("Clear").fontWeight(.semibold).foregroundStyle(.white) }
+                    Button { self.clear() } label: { Text("Clear").fontWeight(.semibold).foregroundStyle(.white) }
                     Spacer()
                 }
                 .padding()
@@ -53,7 +51,7 @@ public struct SignatureView: View {
                 .background(Color(red: 0, green: 115, blue: 190)) // blue ish
                 .clipShape(.rect(cornerRadius: 10))
                 .padding()
-                                
+                
             } // h both
             .onAppear {
                 UIDevice.current.setValue(UIInterfaceOrientation.landscapeLeft.rawValue, forKey: "orientation")
@@ -80,8 +78,7 @@ public struct SignatureView: View {
         }
         image = uiImage
         
-        self.signatureImage = image
-        self.onSignatureCompleted()
+        self.onSignatureCompleted(image)
         dismiss()
     }
     
@@ -91,7 +88,6 @@ public struct SignatureView: View {
         isImageSet = false
         text = ""
     }
-    
     
 }
 
@@ -194,7 +190,6 @@ struct DrawingPath {
             } else {
                 path.addLine(to: points[i])
             }
-            
         }
         return path
     }
