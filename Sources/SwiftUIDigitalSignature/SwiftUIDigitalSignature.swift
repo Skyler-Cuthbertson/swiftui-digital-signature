@@ -42,7 +42,7 @@ public struct SignatureView: View {
                 
                 HStack {
                     Spacer()
-                    Button { self.done() } label: { Text("Done").fontWeight(.semibold).foregroundStyle(.white) }
+                    Button { self.done(); print("done") } label: { Text("Done").fontWeight(.semibold).foregroundStyle(.white) }
                     Spacer()
                 }
                 .padding()
@@ -80,7 +80,7 @@ public struct SignatureView: View {
             ctx.cgContext.drawPath(using: .stroke)
         }
         imageTemp = uiImage
-        
+        print("SAVED")
         self.onSignatureCompleted(image)
     }
     
