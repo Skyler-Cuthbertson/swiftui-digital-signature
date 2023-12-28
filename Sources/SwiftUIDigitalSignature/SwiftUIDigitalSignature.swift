@@ -15,12 +15,10 @@ private let lineWidth: CGFloat = 3
 
 public struct SignatureView: View {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
-    @Environment(\.dismiss) var dismiss
 
     @State private var drawing = DrawingPath()
     @State var image = UIImage()
     @State private var isImageSet = false
-    @State private var text = ""
     
     public let onSignatureCompleted: (UIImage) -> Void
     
@@ -79,14 +77,12 @@ public struct SignatureView: View {
         image = uiImage
         
         self.onSignatureCompleted(image)
-        dismiss()
     }
     
     private func clear() {
         drawing = DrawingPath()
         image = UIImage()
         isImageSet = false
-        text = ""
     }
     
 }
@@ -157,8 +153,7 @@ struct SignatureDrawView: View {
             }).onEnded( { value in
                 drawing.addBreak()
             }))
-        .overlay(RoundedRectangle(cornerRadius: 4)
-            .stroke(Color.gray))
+        .overlay(RoundedRectangle(cornerRadius: 4).stroke(Color.gray))
             
     }
 }
